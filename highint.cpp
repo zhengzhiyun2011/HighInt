@@ -6,7 +6,6 @@
 #include <deque>
 #include <algorithm>
 #include <limits>
-#include <type_traits>
 #include <stdexcept>
 using namespace std;
 
@@ -55,10 +54,6 @@ namespace bigInt
 
 		BigInt(long long num) : BigInt(to_string(num)) {}
 
-		template <typename T>
-		explicit BigInt(const T& num, bool negativeFlag = false) : c(num),
-			mNegativeFlag(negativeFlag) {}
-
 		// 赋值操作符
 		BigInt& operator=(const BigInt& other)
 		{
@@ -99,6 +94,10 @@ namespace bigInt
 	private:
 		deque<short> c;
 		bool mNegativeFlag;
+
+		template <typename T>
+		explicit BigInt(const T& num, bool negativeFlag = false) : c(num),
+			mNegativeFlag(negativeFlag) {}
 	public:
 		// 加等于操作符
 		BigInt& operator+=(const BigInt& other)
@@ -189,6 +188,28 @@ namespace bigInt
 				result += *iter + '0';
 
 			return result;
+		}
+
+		// 尝试获取高精度整数的数字表示形式
+		bool tryToInt() const
+		{
+			return *this >= numeric_limits<long long>::min()
+				&& *this <= numeric_limits<long long>::max();
+		}
+
+		// 获取高精度整数的数字表示形式（如果可以的话）
+		long long toInt() const
+		{
+			if (tryToInt())
+			{
+				long long result = 0;
+				for (auto iter = c.rbegin(); iter != c.rend(); ++iter)
+					result = result * 10 + *iter;
+
+				return result;
+			}
+			else
+				throw out_of_range("Cannot be converted to an integer!");
 		}
 	};
 
@@ -365,6 +386,9 @@ namespace bigInt
 		if (a == 0)
 			return 0;
 
+		if (a < b)
+			return 0;
+
 		decltype(BigInt::c)::size_type i = a.c.size() - 1;
 		BigInt subset;
 		subset.c.push_back(a.c.back());
@@ -463,6 +487,12 @@ int main()
 	cout << "numA * numB: " << numA * numB << '\n';
 	cout << "numA / numB: " << numA / numB << '\n';
 	cout << "numA % numB: " << numA % numB << '\n';
+
+	if (numA.tryToInt())
+		cout << "numA to int: " << numA.toInt() << '\n';
+
+	if (numB.tryToInt())
+		cout << "numB to int: " << numB.toInt() << '\n';
 
 	return EXIT_SUCCESS;
 }
