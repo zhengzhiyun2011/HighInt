@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <future>
 using namespace std;
 
 namespace bigInt
@@ -357,20 +358,26 @@ namespace bigInt
 		if (a.c.size() > b.c.size())
 			swap(a, b);
 
-		decltype(BigInt::c)::size_type l = a.c.size() + b.c.size(), k;
+		decltype(BigInt::c)::size_type l = a.c.size() + b.c.size();
 		// 结果多申请了两个位置，预留给进位的
 		BigInt result(deque<short>(l + 2), a.mNegativeFlag != b.mNegativeFlag);
+		vector<future<void>> resList;
 
 		for (decltype(BigInt::c)::size_type i = 0, j; i < a.c.size(); ++i)
 		{
 			for (j = 0; j < b.c.size(); ++j)
 			{
-				k = i + j;
-				result.c[k] += a.c[i] * b.c[j];
-				result.c[k + 1] += result.c[k] / 10;
-				result.c[k] %= 10;
+				resList.emplace_back(async(launch::async, [i, j, &result, &a, &b]() {
+					decltype(BigInt::c)::size_type k = i + j;
+					result.c[k] += a.c[i] * b.c[j];
+					result.c[k + 1] += result.c[k] / 10;
+					result.c[k] %= 10;
+					}));
 			}
 		}
+
+		for (auto& res : resList)
+			res.wait();
 
 		BigInt::removeHeadZero(result);
 
@@ -437,13 +444,7 @@ namespace bigInt
 	// 输出操作符
 	inline ostream& operator<<(ostream& out, const BigInt& value)
 	{
-		if (value.mNegativeFlag)
-			out.put('-');
-
-		for (auto iter = value.c.rbegin(); iter != value.c.rend(); ++iter)
-			out.put(*iter + '0');
-
-		return out;
+		return out << value.toStr();
 	}
 
 	// 输入操作符
