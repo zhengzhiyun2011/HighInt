@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cmath>
 #include <cctype>
 #include <iostream>
 #include <string>
@@ -9,6 +10,7 @@
 #include <stdexcept>
 #include <future>
 #include <chrono>
+#include <type_traits>
 using namespace std;
 
 namespace bigInt
@@ -31,7 +33,8 @@ namespace bigInt
 
 		// 构造函数
 		BigInt() : mNegativeFlag(false) {}
-		BigInt(const BigInt& other) : c(other.c), mNegativeFlag(other.mNegativeFlag) {}
+		BigInt(const BigInt& other) : c(other.c),
+			mNegativeFlag(other.mNegativeFlag) {}
 		BigInt(BigInt&& right) : c(move(right.c)),
 			mNegativeFlag(move(right.mNegativeFlag)) {}
 		BigInt(string str) : c(str.size())
@@ -54,7 +57,20 @@ namespace bigInt
 			removeHeadZero(*this);
 		}
 
-		BigInt(long long num) : BigInt(to_string(num)) {}
+		template <typename T, typename enable_if<is_integral<T>::value>::type* = nullptr>
+		BigInt(T num) : mNegativeFlag(num < 0)
+		{
+			num = std::abs(num);
+
+			if (num == 0)
+				c.push_back(0);
+
+			while (num >= 1)
+			{
+				c.push_back(num % 10);
+				num /= 10;
+			}
+		}
 
 		// 赋值操作符
 		BigInt& operator=(const BigInt& other)
@@ -86,6 +102,7 @@ namespace bigInt
 		friend bool operator>=(const BigInt& a, const BigInt& b);
 		friend bool operator<=(const BigInt& a, const BigInt& b);
 		friend bool operator==(const BigInt& a, const BigInt& b);
+		friend bool operator!=(const BigInt& a, const BigInt& b);
 		friend BigInt operator+(const BigInt& a, const BigInt& b);
 		friend BigInt operator-(BigInt a, BigInt b);
 		friend BigInt operator*(BigInt a, BigInt b);
@@ -98,7 +115,7 @@ namespace bigInt
 		bool mNegativeFlag;
 
 		template <typename T>
-		explicit BigInt(const T& num, bool negativeFlag = false) : c(num),
+		explicit BigInt(const T& num, bool negativeFlag) : c(num),
 			mNegativeFlag(negativeFlag) {}
 	public:
 		// 加等于操作符
@@ -164,7 +181,7 @@ namespace bigInt
 		// 返回绝对值的BigInt类成员函数
 		BigInt abs() const
 		{
-			return BigInt(c);
+			return BigInt(c, false);
 		}
 
 		// 恢复未定义值的状态
@@ -282,6 +299,12 @@ namespace bigInt
 		return a.mNegativeFlag == b.mNegativeFlag && a.c == b.c;
 	}
 
+	// BigInt类不等于比较操作符的函数实现
+	inline bool operator!=(const BigInt& a, const BigInt& b)
+	{
+		return !(a == b);
+	}
+
 	// BigInt类加操作符的函数实现
 	BigInt operator+(const BigInt& a, const BigInt& b)
 	{
@@ -314,7 +337,9 @@ namespace bigInt
 	// BigInt类减操作符的函数实现
 	BigInt operator-(BigInt a, BigInt b)
 	{
-		if (a.mNegativeFlag == b.mNegativeFlag)
+		if (a == b)
+			return 0;
+		else if (a.mNegativeFlag == b.mNegativeFlag)
 		{
 			decltype(BigInt::c)::size_type maxLength = max(a.c.size(), b.c.size());
 			BigInt result(deque<short>(), a.mNegativeFlag);
@@ -380,12 +405,16 @@ namespace bigInt
 				}
 				}));
 
-			while (resList.front().wait_for(0s) == future_status::ready)
+			while (resList.front().valid()
+				&& resList.front().wait_for(chrono::seconds(0)) == future_status::ready)
 				resList.pop_front();
 		}
 
 		for (const auto& res : resList)
-			res.wait();
+		{
+			if (res.valid())
+				res.wait();
+		}
 
 		BigInt::removeHeadZero(result);
 
@@ -401,7 +430,7 @@ namespace bigInt
 		if (a == 0)
 			return 0;
 
-		if (a < b)
+		if (a.abs() < b.abs())
 			return 0;
 
 		decltype(BigInt::c)::size_type i = a.c.size() - 1;
@@ -473,7 +502,6 @@ namespace bigInt
 		}
 
 		value = input;
-		BigInt::removeHeadZero(value);
 
 		return in;
 	}
