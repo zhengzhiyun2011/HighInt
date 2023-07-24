@@ -8,6 +8,7 @@
 #include <limits>
 #include <stdexcept>
 #include <future>
+#include <chrono>
 using namespace std;
 
 namespace bigInt
@@ -183,7 +184,10 @@ namespace bigInt
 		string toStr() const
 		{
 			string result;
-			result.reserve(c.size());
+			result.reserve(c.size() + 1);
+
+			if (mNegativeFlag)
+				result += '-';
 
 			for (auto iter = c.rbegin(); iter != c.rend(); ++iter)
 				result += *iter + '0';
@@ -361,22 +365,26 @@ namespace bigInt
 		decltype(BigInt::c)::size_type l = a.c.size() + b.c.size();
 		// 结果多申请了两个位置，预留给进位的
 		BigInt result(deque<short>(l + 2), a.mNegativeFlag != b.mNegativeFlag);
-		vector<future<void>> resList;
+		deque<future<void>> resList;
 
-		for (decltype(BigInt::c)::size_type i = 0, j; i < a.c.size(); ++i)
+		// 并行乘法
+		for (decltype(BigInt::c)::size_type i = 0; i < a.c.size(); ++i)
 		{
-			for (j = 0; j < b.c.size(); ++j)
-			{
-				resList.emplace_back(async(launch::async, [i, j, &result, &a, &b]() {
+			resList.emplace_back(async(launch::async, [i, &result, &a, &b]() {
+				for (decltype(BigInt::c)::size_type j = 0; j < b.c.size(); ++j)
+				{
 					decltype(BigInt::c)::size_type k = i + j;
 					result.c[k] += a.c[i] * b.c[j];
 					result.c[k + 1] += result.c[k] / 10;
 					result.c[k] %= 10;
-					}));
-			}
+				}
+				}));
+
+			while (resList.front().wait_for(0s) == future_status::ready)
+				resList.pop_front();
 		}
 
-		for (auto& res : resList)
+		for (const auto& res : resList)
 			res.wait();
 
 		BigInt::removeHeadZero(result);
