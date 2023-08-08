@@ -15,11 +15,11 @@ using namespace std;
 
 namespace bigInt
 {
-	class BigInt final
+	class HighInt final
 	{
 	public:
 		// 去除前缀零的函数
-		static size_t removeHeadZero(BigInt& num)
+		static size_t removeHeadZero(HighInt& num)
 		{
 			size_t i = 0;
 			while (num.c.size() > 1 && num.c.back() == 0)
@@ -32,12 +32,12 @@ namespace bigInt
 		}
 
 		// 构造函数
-		BigInt() : mNegativeFlag(false) {}
-		BigInt(const BigInt& other) : c(other.c),
+		HighInt() : mNegativeFlag(false) {}
+		HighInt(const HighInt& other) : c(other.c),
 			mNegativeFlag(other.mNegativeFlag) {}
-		BigInt(BigInt&& right) : c(move(right.c)),
+		HighInt(HighInt&& right) : c(move(right.c)),
 			mNegativeFlag(move(right.mNegativeFlag)) {}
-		BigInt(string str) : c(str.size())
+		HighInt(string str) : c(str.size())
 		{
 			string::size_type length = str.size();
 
@@ -58,7 +58,7 @@ namespace bigInt
 		}
 
 		template <typename T, typename enable_if<is_integral<T>::value>::type* = nullptr>
-		BigInt(T num) : mNegativeFlag(num < 0)
+		HighInt(T num) : mNegativeFlag(num < 0)
 		{
 			num = std::abs(num);
 
@@ -73,14 +73,14 @@ namespace bigInt
 		}
 
 		// 赋值操作符
-		BigInt& operator=(const BigInt& other)
+		HighInt& operator=(const HighInt& other)
 		{
 			c = other.c;
 			mNegativeFlag = other.mNegativeFlag;
 			return *this;
 		}
 
-		BigInt& operator=(BigInt&& right)
+		HighInt& operator=(HighInt&& right)
 		{
 			c = move(right.c);
 			mNegativeFlag = move(right.mNegativeFlag);
@@ -88,100 +88,106 @@ namespace bigInt
 		}
 
 		// 取反操作符
-		BigInt operator-()
+		HighInt operator-()
 		{
-			return BigInt(c, !mNegativeFlag);
+			return HighInt(c, !mNegativeFlag);
 		}
 
 		// 默认的析构函数
-		~BigInt() = default;
+		~HighInt() = default;
 
 		// 友元函数声明
-		friend bool operator>(const BigInt& a, const BigInt& b);
-		friend bool operator<(const BigInt& a, const BigInt& b);
-		friend bool operator>=(const BigInt& a, const BigInt& b);
-		friend bool operator<=(const BigInt& a, const BigInt& b);
-		friend bool operator==(const BigInt& a, const BigInt& b);
-		friend bool operator!=(const BigInt& a, const BigInt& b);
-		friend BigInt operator+(const BigInt& a, const BigInt& b);
-		friend BigInt operator-(BigInt a, BigInt b);
-		friend BigInt operator*(BigInt a, BigInt b);
-		friend BigInt operator/(BigInt a, BigInt b);
-		friend BigInt operator%(const BigInt& a, const BigInt& b);
-		friend ostream& operator<<(ostream& out, const BigInt& value);
-		friend istream& operator>>(istream& in, BigInt& value);
+		friend bool operator>(const HighInt& a, const HighInt& b);
+		friend bool operator<(const HighInt& a, const HighInt& b);
+		friend bool operator>=(const HighInt& a, const HighInt& b);
+		friend bool operator<=(const HighInt& a, const HighInt& b);
+		friend bool operator==(const HighInt& a, const HighInt& b);
+		friend bool operator!=(const HighInt& a, const HighInt& b);
+		friend HighInt operator+(const HighInt& a, const HighInt& b);
+		friend HighInt operator-(const HighInt& a, const HighInt& b);
+		friend HighInt operator*(HighInt a, HighInt b);
+		friend HighInt operator/(HighInt a, HighInt b);
+		friend HighInt operator%(HighInt a, HighInt b);
+		friend ostream& operator<<(ostream& out, const HighInt& value);
+		friend istream& operator>>(istream& in, HighInt& value);
 	private:
 		deque<short> c;
 		bool mNegativeFlag;
 
 		template <typename T>
-		explicit BigInt(const T& num, bool negativeFlag) : c(num),
+		explicit HighInt(const T& num, bool negativeFlag) : c(num),
 			mNegativeFlag(negativeFlag) {}
+
+		// 检查下标是否越界的函数
+		static bool checkPos(size_t pos, const HighInt& num)
+		{
+			return pos < num.c.size();
+		}
 	public:
 		// 加等于操作符
-		BigInt& operator+=(const BigInt& other)
+		HighInt& operator+=(const HighInt& other)
 		{
 			return *this = *this + other;
 		}
 
 		// 减等于操作符
-		BigInt& operator-=(const BigInt& other)
+		HighInt& operator-=(const HighInt& other)
 		{
 			return *this = *this - other;
 		}
 
 		// 乘等于操作符
-		BigInt& operator*=(const BigInt& other)
+		HighInt& operator*=(const HighInt& other)
 		{
 			return *this = *this * other;
 		}
 
 		// 除等于操作符
-		BigInt& operator/=(const BigInt& other)
+		HighInt& operator/=(const HighInt& other)
 		{
 			return *this = *this / other;
 		}
 
 		// 模等于操作符
-		BigInt& operator%=(const BigInt& other)
+		HighInt& operator%=(const HighInt& other)
 		{
 			return *this = *this % other;
 		}
 
 		// 前置自增操作符
-		BigInt& operator++()
+		HighInt& operator++()
 		{
 			return *this += 1;
 		}
 
 		// 后置自增操作符
-		BigInt operator++(int)
+		HighInt operator++(int)
 		{
-			BigInt temp = *this;
+			HighInt temp = *this;
 			++*this;
 
 			return temp;
 		}
 
 		// 前置自减操作符
-		BigInt& operator--()
+		HighInt& operator--()
 		{
 			return *this -= 1;
 		}
 
 		// 后置自减操作符
-		BigInt operator--(int)
+		HighInt operator--(int)
 		{
-			BigInt temp = *this;
+			HighInt temp = *this;
 			--*this;
 
 			return temp;
 		}
 
 		// 返回绝对值的BigInt类成员函数
-		BigInt abs() const
+		HighInt abs() const
 		{
-			return BigInt(c, false);
+			return HighInt(c, false);
 		}
 
 		// 恢复未定义值的状态
@@ -236,7 +242,7 @@ namespace bigInt
 	};
 
 	// BigInt类大于比较操作符的函数实现
-	bool operator>(const BigInt& a, const BigInt& b)
+	bool operator>(const HighInt& a, const HighInt& b)
 	{
 		if (a.mNegativeFlag != b.mNegativeFlag)
 			return !a.mNegativeFlag && b.mNegativeFlag;
@@ -244,10 +250,10 @@ namespace bigInt
 			return a.c.size() > b.c.size();
 		else
 		{
-			decltype(BigInt::c)::size_type length = a.c.size();
+			decltype(HighInt::c)::size_type length = a.c.size();
 			bool negativeFlag = a.mNegativeFlag;
 			// 从后向前比较
-			for (decltype(BigInt::c)::size_type i = length - 1;
+			for (decltype(HighInt::c)::size_type i = length - 1;
 				i < numeric_limits<decltype(i)>::max(); --i)
 			{
 				if (a.c[i] != b.c[i])
@@ -259,7 +265,7 @@ namespace bigInt
 	}
 
 	// BigInt类小于操作符的函数实现
-	bool operator<(const BigInt& a, const BigInt& b)
+	bool operator<(const HighInt& a, const HighInt& b)
 	{
 		if (a.mNegativeFlag != b.mNegativeFlag)
 			return a.mNegativeFlag && !b.mNegativeFlag;
@@ -267,10 +273,10 @@ namespace bigInt
 			return a.c.size() < b.c.size();
 		else
 		{
-			decltype(BigInt::c)::size_type length = a.c.size();
+			decltype(HighInt::c)::size_type length = a.c.size();
 			bool negativeFlag = a.mNegativeFlag;
 			// 从后向前比较
-			for (decltype(BigInt::c)::size_type i = length - 1;
+			for (decltype(HighInt::c)::size_type i = length - 1;
 				i < numeric_limits<decltype(i)>::max(); --i)
 			{
 				if (a.c[i] != b.c[i])
@@ -282,45 +288,51 @@ namespace bigInt
 	}
 
 	// BigInt类大于等于比较操作符的函数实现
-	inline bool operator>=(const BigInt& a, const BigInt& b)
+	inline bool operator>=(const HighInt& a, const HighInt& b)
 	{
 		return !(a < b);
 	}
 
 	// BigInt类小于等于比较操作符的函数实现
-	inline bool operator<=(const BigInt& a, const BigInt& b)
+	inline bool operator<=(const HighInt& a, const HighInt& b)
 	{
 		return !(a > b);
 	}
 
 	// BigInt类等于比较操作符的函数实现
-	inline bool operator==(const BigInt& a, const BigInt& b)
+	inline bool operator==(const HighInt& a, const HighInt& b)
 	{
 		return a.mNegativeFlag == b.mNegativeFlag && a.c == b.c;
 	}
 
 	// BigInt类不等于比较操作符的函数实现
-	inline bool operator!=(const BigInt& a, const BigInt& b)
+	inline bool operator!=(const HighInt& a, const HighInt& b)
 	{
 		return !(a == b);
 	}
 
 	// BigInt类加操作符的函数实现
-	BigInt operator+(const BigInt& a, const BigInt& b)
+	HighInt operator+(const HighInt& a, const HighInt& b)
 	{
 		if (a.mNegativeFlag == b.mNegativeFlag)
 		{
-			decltype(BigInt::c)::size_type maxLength = max(a.c.size(), b.c.size());
-			BigInt result;
+			decltype(HighInt::c)::size_type maxLength = max(a.c.size(), b.c.size());
+			HighInt result;
+			result.mNegativeFlag = a.mNegativeFlag;
 			bool carryFlag = false;
-			deque<short> copyA = a.c, copyB = b.c;
-			// 添加前缀零，防止越界
-			copyA.resize(maxLength); copyB.resize(maxLength);
 
-			for (decltype(BigInt::c)::size_type i = 0; i < maxLength; ++i)
+			for (decltype(HighInt::c)::size_type i = 0; i < maxLength; ++i)
 			{
-				result.c.push_back((carryFlag + copyA[i] + copyB[i]) % 10);
-				carryFlag = (carryFlag + copyA[i] + copyB[i]) / 10;
+				short temp;
+				if (HighInt::checkPos(i, a) && HighInt::checkPos(i, b))
+					temp = a.c[i] + b.c[i] + carryFlag;
+				else if (HighInt::checkPos(i, a))
+					temp = a.c[i] + carryFlag;
+				else
+					temp = b.c[i] + carryFlag;
+
+				carryFlag = temp / 10;
+				result.c.emplace_back(temp % 10);
 			}
 
 			if (carryFlag)
@@ -335,28 +347,35 @@ namespace bigInt
 	}
 
 	// BigInt类减操作符的函数实现
-	BigInt operator-(BigInt a, BigInt b)
+	HighInt operator-(const HighInt& a, const HighInt& b)
 	{
 		if (a == b)
 			return 0;
 		else if (a.mNegativeFlag == b.mNegativeFlag)
 		{
-			decltype(BigInt::c)::size_type maxLength = max(a.c.size(), b.c.size());
-			BigInt result(deque<short>(), a.mNegativeFlag);
-			bool borrowFlag = false;
-			a.c.resize(maxLength); b.c.resize(maxLength);
+			decltype(HighInt::c)::size_type maxLength = max(a.c.size(), b.c.size());
+			HighInt result(deque<short>(), a.mNegativeFlag);
+			bool borrowFlag = false, flag = false;
 
 			// 处理小减大
 			if (a.abs() < b.abs())
 			{
-				swap(a, b);
 				result.mNegativeFlag = !result.mNegativeFlag;
+				flag = true;
 			}
 
 			short bitResult;    // 每一位上的结果
-			for (decltype(BigInt::c)::size_type i = 0; i < maxLength; ++i)
+			for (decltype(HighInt::c)::size_type i = 0; i < maxLength; ++i)
 			{
-				bitResult = a.c[i] - b.c[i] - borrowFlag;
+				if (HighInt::checkPos(i, a) && HighInt::checkPos(i, b) && !flag)
+					bitResult = a.c[i] - b.c[i] - borrowFlag;
+				else if (HighInt::checkPos(i, a) && HighInt::checkPos(i, b) && flag)
+					bitResult = b.c[i] - a.c[i] - borrowFlag;
+				else if (!flag)
+					bitResult = a.c[i] - borrowFlag;
+				else
+					bitResult = b.c[i] - borrowFlag;
+
 				if (bitResult < 0)
 				{
 					// 借位
@@ -367,11 +386,11 @@ namespace bigInt
 					borrowFlag = false;
 
 				// 把这一位上的结果放入result.c
-				result.c.push_back(bitResult);
+				result.c.emplace_back(bitResult);
 			}
 
 			// 去除前导零
-			BigInt::removeHeadZero(result);
+			HighInt::removeHeadZero(result);
 
 			return result;
 		}
@@ -382,23 +401,23 @@ namespace bigInt
 	}
 
 	// BigInt类乘操作符的函数实现
-	BigInt operator*(BigInt a, BigInt b)
+	HighInt operator*(HighInt a, HighInt b)
 	{
 		if (a.c.size() > b.c.size())
 			swap(a, b);
 
-		decltype(BigInt::c)::size_type l = a.c.size() + b.c.size();
+		decltype(HighInt::c)::size_type l = a.c.size() + b.c.size();
 		// 结果多申请了两个位置，预留给进位的
-		BigInt result(deque<short>(l + 2), a.mNegativeFlag != b.mNegativeFlag);
+		HighInt result(deque<short>(l + 2), a.mNegativeFlag != b.mNegativeFlag);
 		deque<future<void>> resList;
 
 		// 并行乘法
-		for (decltype(BigInt::c)::size_type i = 0; i < a.c.size(); ++i)
+		for (decltype(HighInt::c)::size_type i = 0; i < a.c.size(); ++i)
 		{
 			resList.emplace_back(async(launch::async, [i, &result, &a, &b]() {
-				for (decltype(BigInt::c)::size_type j = 0; j < b.c.size(); ++j)
+				for (decltype(HighInt::c)::size_type j = 0; j < b.c.size(); ++j)
 				{
-					decltype(BigInt::c)::size_type k = i + j;
+					decltype(HighInt::c)::size_type k = i + j;
 					result.c[k] += a.c[i] * b.c[j];
 					result.c[k + 1] += result.c[k] / 10;
 					result.c[k] %= 10;
@@ -416,13 +435,13 @@ namespace bigInt
 				res.wait();
 		}
 
-		BigInt::removeHeadZero(result);
+		HighInt::removeHeadZero(result);
 
 		return result;
 	}
 
 	// BigInt类除操作符的函数实现
-	BigInt operator/(BigInt a, BigInt b)
+	HighInt operator/(HighInt a, HighInt b)
 	{
 		if (b == 0)
 			throw invalid_argument("Divide by zero!");
@@ -433,8 +452,8 @@ namespace bigInt
 		if (a.abs() < b.abs())
 			return 0;
 
-		decltype(BigInt::c)::size_type i = a.c.size() - 1;
-		BigInt subset;
+		decltype(HighInt::c)::size_type i = a.c.size() - 1;
+		HighInt subset;
 		subset.c.push_back(a.c.back());
 		bool negativeFlag = a.mNegativeFlag != b.mNegativeFlag;
 		a = a.abs(); b = b.abs();
@@ -463,29 +482,68 @@ namespace bigInt
 			if (i > 0)
 			{
 				x.c.push_front(a.c[i - 1]);
-				BigInt::removeHeadZero(x);
+				HighInt::removeHeadZero(x);
 			}
 
 			--i;
 		}
 
-		return BigInt(ans, negativeFlag);
+		return HighInt(ans, negativeFlag);
 	}
 
 	// BigInt类取模操作符的函数实现
-	inline BigInt operator%(const BigInt& a, const BigInt& b)
+	HighInt operator%(HighInt a, HighInt b)
 	{
-		return a - a / b * b;
+		if (b == 0)
+			throw invalid_argument("Divide by zero!");
+
+		if (a == 0)
+			return 0;
+
+		if (a.abs() < b.abs())
+			return HighInt(a.c, a.mNegativeFlag != b.mNegativeFlag);
+
+		decltype(HighInt::c)::size_type i = a.c.size() - 1;
+		HighInt subset;
+		subset.c.push_back(a.c.back());
+		bool negativeFlag = a.mNegativeFlag != b.mNegativeFlag;
+		a = a.abs(); b = b.abs();
+
+		while (subset < b && i < numeric_limits<decltype(i)>::max())
+		{
+			--i;
+			subset.c.push_front(a.c[i]);
+		}
+
+		auto& x = subset;
+
+		while (i < numeric_limits<decltype(i)>::max())
+		{
+			while (x >= b)
+				x -= b;
+
+			if (i > 0)
+			{
+				x.c.push_front(a.c[i - 1]);
+				HighInt::removeHeadZero(x);
+			}
+
+			--i;
+		}
+
+		x.mNegativeFlag = negativeFlag;
+
+		return x;
 	}
 
 	// 输出操作符
-	inline ostream& operator<<(ostream& out, const BigInt& value)
+	inline ostream& operator<<(ostream& out, const HighInt& value)
 	{
 		return out << value.toStr();
 	}
 
 	// 输入操作符
-	inline istream& operator>>(istream& in, BigInt& value)
+	inline istream& operator>>(istream& in, HighInt& value)
 	{
 		string input;
 		in >> input;
@@ -511,25 +569,9 @@ int main()
 {
 	using namespace bigInt;
 
-	BigInt numA, numB;
-	cout << boolalpha << "numA.empty(): " << numA.empty()
-		<< " numB.empty(): " << numB.empty() << '\n';
-
-	cout << "Please press the numA and the numB:\n";
-	cin >> numA >> numB;
-
-	cout << "numA: " << numA << " numB: " << numB << '\n';
-	cout << "numA + numB: " << numA + numB << '\n';
-	cout << "numA - numB: " << numA - numB << '\n';
-	cout << "numA * numB: " << numA * numB << '\n';
-	cout << "numA / numB: " << numA / numB << '\n';
-	cout << "numA % numB: " << numA % numB << '\n';
-
-	if (numA.tryToInt())
-		cout << "numA to int: " << numA.toInt() << '\n';
-
-	if (numB.tryToInt())
-		cout << "numB to int: " << numB.toInt() << '\n';
-
+	HighInt a, b;
+	cin >> a >> b;
+	cout << a - b << '\n';
+	
 	return EXIT_SUCCESS;
 }
